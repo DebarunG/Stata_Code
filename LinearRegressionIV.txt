@@ -1,0 +1,53 @@
+clear
+cap log close
+
+log using LinearRegressionIV, text replace
+
+*Using BWGHT.csv to determine the effects of several variables-
+*-including cigarette smoking on the birth weight of infants
+
+	import delimited "https://raw.githubusercontent.com/DebarunG/Stata_data/main/BWGHT.csv", delimiter(comma) clear 
+	
+	*modeling
+	regress lbwght male parity lfaminc packs
+	estimates store OLS
+	
+	*using cigprice as an instrumental variable for number of packs smoked-
+	*-in a day
+	ivreg lbwght male parity lfaminc (packs=cigprice )
+	estimates store IV
+	
+	*comparing 2SLS and OLS estimates using the Hausman test
+	hausman IV OLS
+	
+	*testing the IV relationship by estimating reduced for model of packs
+	regress packs male parity lfaminc cigprice
+
+	clear
+	
+*Using WAGE2.dta to understand the effect of birth order and number of-
+*-siblings on individual income
+
+	import delimited "https://raw.githubusercontent.com/DebarunG/Stata_data/main/WAGE2.csv", delimiter(comma) clear 
+	
+	*using number of siblings as an IV for education level
+	ivreg lwage (educ = sibs )
+	regress lwage sibs
+	
+	*OLS regression of birth order on education
+	regress educ brthord
+	
+	*using birth order as an IV for education level
+	ivreg lwage (educ = brthord )
+	
+	*OLS regression of number of siblings and birth order on education
+	regress educ sibs brthord
+	
+	*testing validity of number of siblings as an IV for education
+	regress educ sibs brthord
+	predict educhat
+	cor educhat sibs
+	
+clear
+
+log close
