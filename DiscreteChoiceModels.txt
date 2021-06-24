@@ -1,0 +1,72 @@
+clear all
+cap log close
+set more off
+
+log using DiscreteChoiceModels.log, text replace
+
+import delimited "https://raw.githubusercontent.com/DebarunG/Stata_data/main/GROGGER.csv", delimiter(comma) clear 
+
+	*Using GROGGER.csv to study the effects of prior behaviour and other-
+	*-characteristics on arrests
+	
+	*generating a binary variable for arrests in 1986 (=1 if arrested, 0 otherwise)
+	gen arr86=(narr86>0)
+	
+	*standard linear linear probability model with and without robust standard errors
+	regress arr86 pcnv avgsen tottime ptime86 inc86 black hispan born60
+	regress arr86 pcnv avgsen tottime ptime86 inc86 black hispan born60, robust
+	
+	*effect of arrest probability by a 0.5 increase in prior convictions
+	di 0.5*_b[pcnv]
+	
+	*joint significance test for homoskedastic standard errors
+	regress arr86 pcnv avgsen tottime ptime86 inc86 black hispan born60
+	test avgsen tottime
+	
+	*joint significance test for heteroskedasticity robust standard errors
+	regress arr86 pcnv avgsen tottime ptime86 inc86 black hispan born60, robust
+	test avgsen tottime
+	predict arrhat
+	
+	*verifying if predicted probabilities are out of bounds
+	sum arrhat if arrhat<0
+	sum arrhat if arrhat>1
+
+	*probit model
+	probit arr86 pcnv avgsen tottime ptime86 inc86 black hispan born60
+	mfx
+	local regressors avgsen tottime ptime86 inc86
+	
+	*marginal effects on arrest probability when prior convictions go from 0.25 to 0.75
+	margins, at(black=1 hispan=0 born60=1 pcnv=0.25) atmean
+	margins, at(black=1 hispan=0 born60=1 pcnv=0.75) atmean
+	
+	*compute fitted values
+	predict fit
+
+	*compute precent correctly predicted
+	gen tarr86=(fit>0.5)
+	tab tarr86 arr86, col
+	di (1903+78)/2725
+	
+	*probit model with nonlinear regressors 
+	probit arr86 pcnv avgsen tottime ptime86 inc86 black hispan born60 pcnvsq pt86sq inc86sq
+
+	*Computing the marginal effect for pcnv on the latent variable propensity to be arrested 
+	gen meff=.2167615 + 2* -.8570512*pcnv 
+	*plotting the marginal effect on pcnv
+	line meff pcnv 
+	
+	*Use in build Wald test for joint significance
+	test pcnvsq pt86sq inc86sq
+	
+	*alternatively using likelihood ratio test
+	probit arr86 pcnv avgsen tottime ptime86 inc86 black hispan born60
+	estimates store R
+	probit arr86 pcnv avgsen tottime ptime86 inc86 black hispan born60 pcnvsq pt86sq inc86sq
+	estimates store UR
+	lrtest UR (R), df(3)
+
+clear all
+	
+log close

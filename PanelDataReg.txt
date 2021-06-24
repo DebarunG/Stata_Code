@@ -1,0 +1,97 @@
+clear all
+cap log close
+set more off
+
+log using PanelDataReg.log, text replace
+
+import delimited "https://raw.githubusercontent.com/DebarunG/Stata_data/main/JTRAIN1.csv", delimiter(comma) clear 
+
+*data cleaning
+destring employ avgsal scrap rework sales tothrs totrain-lscrap_1 clscrap clemploy-clhrsemp, replace ignore(NA)
+
+*Using JTRAIN1.csv to analyze the effects of job training grants-
+*-on firm scrap rates
+
+	*estimating using pooled OLS with fully robust standard errors
+	reg lscrap d88 d89 union grant grant_1, vce(cluster fcode)
+
+	*testing for the presence of lagged effects
+	test grant grant_1
+
+	*estimating using first difference estimator
+	tsset fcode year
+	reg d.lscrap d89 d.union d.grant d.grant_1
+	test d.grant d.grant_1
+
+	*fixed-effects model
+	xtreg lscrap d88 d89 union grant grant_1, fe
+	test grant grant_1
+
+	*generating dummy variables for firms and running a dummy variable estimation
+	sort fcode year
+	qui tab fcode if lscrap!=., gen(firm)
+	regress lscrap d88 d89 union grant grant_1 firm1-firm54, noconstant
+
+	*random effects model
+	xtreg lscrap d88 d89 union grant grant_1, re
+	test grant grant_1
+	
+	*comparing FE and RE estimates
+	scalar lambda=1-(1/(1+3*((1.3900287)^2/(0.49774421)^2)))^(1/2)
+	di lambda
+	
+	*Breusch-Pagan Lagrangian Multiplier test for POLS vs FE/RE
+	xtreg lscrap d88 d89 union grant grant_1, re
+	xttest0 
+	
+	*Hausman test for RE vs FE
+	xtreg lscrap d88 d89 grant grant_1, fe
+	est store fixed
+	xtreg lscrap d88 d89 grant grant_1, re
+	hausman fixed 
+	
+clear all
+
+import delimited "https://raw.githubusercontent.com/DebarunG/Stata_data/main/airfare.csv", delimiter(comma) clear 
+	
+	*Using airfare.csv to see the effects of fare and distance on passenger-
+	*-count in an airline
+	
+	*standard OLS regression with robust standard errors
+	regress lpassen lfare ldist  y98 y99 y00, cluster(id)
+	
+	*fixed-effects regression with robust standard errors
+	xtreg lpassen lfare ldist y98 y99 y00, fe cluster(id)
+	
+	*fixed-effects IV regression with biggest carrier in fraction market-
+	*-as IV for log fare
+	xtivreg lpassen ldist  y98 y99 y00 (lfare=concen), fe first 
+	
+	*verifying differnce in correlation between lfare and concen when using-
+	*-FE and RE
+	xtreg lfare concen ldist ldistsq y98 y99 y00, re cluster(id)
+	xtreg lfare concen ldist ldistsq y98 y99 y00, fe cluster(id)
+	
+	*update package ivreg2 and ranktest:
+	ssc install ivreg2, replace
+	ssc install ranktest, replace
+	ssc install xtivreg2, replace
+	
+	*generating interaction terms
+	egen mu_ldist=mean(ldist)
+	gen dmldist=ldist-mu_ldist
+	egen mu_ldistsq=mean(ldistsq)
+	gen dmldistsq=ldistsq-mu_ldistsq
+	gen ldist_lfare=dmldist*lfare
+	gen ldistsq_lfare=dmldistsq*lfare
+	gen ldist_concen=dmldist*concen
+	gen ldistsq_concen=dmldistsq*concen
+	
+	
+	*FEIV regression with fully robust standard errors
+	xtivreg2 lpassen y98 y99 y00 (lfare ldist_lfare ldistsq_lfare= concen ldist_concen ldistsq_concen), fe cluster(id)
+	
+	*test for joint significance
+	test ldist_lfare ldistsq_lfare
+	
+	log close
