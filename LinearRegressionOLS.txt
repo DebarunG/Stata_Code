@@ -1,0 +1,68 @@
+clear all
+cap log close
+set more off
+
+log using LinearRegressionOLS.log, text replace
+
+*Using DISCRIM.csv to see whether restaurants charge higher prices in regions-
+*-with higher concentrations of African-American people 
+
+	import delimited "https://raw.githubusercontent.com/DebarunG/Stata_data/main/DISCRIM.csv", delimiter(comma) clear 
+
+
+	*OLS Regression
+	regress lpsoda prpblck lincome prppov
+	test prpblck=0
+
+	*testing correlation between lincome and prppov
+	cor lincome prppov
+
+	*adding lhseval to the OLS model
+	regress lpsoda prpblck lincome prppov lhseval
+
+	*testing the joint significance of lincome and prppov
+	test lincome=prppov=0
+
+clear
+
+*Using SLEEP75.csv to understand differences in sleeping patterns-
+*-between men and women
+
+	import delimited "https://raw.githubusercontent.com/DebarunG/Stata_data/main/SLEEP75.csv", delimiter(comma) clear
+
+	*Comparing OLS regressions between standard errors and-
+	*-heteroskedasticity robust standard errors
+	regress sleep totwrk educ age agesq yngkid male
+	regress sleep totwrk educ age agesq yngkid male, robust
+
+	*Checking the variance of residuals between men and women
+	regress sleep totwrk educ age agesq yngkid male
+	predict double resid, residuals
+	gen residsq=resid^2
+	regress residsq male
+
+clear
+
+*Using hprice1.csv to run White test for heteroskedasticity
+
+	import delimited "https://raw.githubusercontent.com/DebarunG/Stata_data/main/hprice1.csv", delimiter(comma) clear
+	regress lprice llotsize lsqrft bdrms
+	predict double resid, residuals
+
+	gen residsq=resid^2
+	gen llotsizesq=llotsize^2
+	gen llotsizelsqrft=llotsize*lsqrft
+	gen llotsizebdrms=llotsize*bdrms
+	gen lsqrftbdrms=lsqrft*bdrms
+	regress residsq llotsize lsqrft bdrms llotsizesq-lsqrftbdrms
+
+
+	scalar w_stat=e(r2)*_N
+	di w_stat
+
+	* The p-value for chi-squared distibution with 9 d.f. is
+	display chi2tail(9,w_stat)
+
+clear
+log close
+
