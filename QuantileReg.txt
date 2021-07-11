@@ -8,57 +8,57 @@ import delimited "https://raw.githubusercontent.com/DebarunG/Stata_data/main/une
 
 *Using unemp.csv to analyze the effects of gender, age and other characteristics on time spent unemployed
 
-*generating log(time) variable
-gen ltime=log(time)
+	*generating log(time) variable
+	gen ltime=log(time)
 
-*visulatization
-histogram time, bin(50)
-histogram ltime, bin(50)
+	*visulatization
+	histogram time, bin(50)
+	histogram ltime, bin(50)
 
-*standard linear regression model
-regress ltime female age wage
+	*standard linear regression model
+	regress ltime female age wage
+	
+	*simultaneous quantile regression for 10th, 50th and 75th percentiles of log(time)
+	sqreg ltime female age wage, q(.1 .5 .75)
+	
+	*quantile regression
+	qreg ltime female age wage
 
-*simultaneous quantile regression for 10th, 50th and 75th percentiles of log(time)
-sqreg ltime female age wage, q(.1 .5 .75)
+	*quantile regression with graphed coefficients, confidence interval and OLS coefficients
+	grqreg ltime female age wage, ci ols
 
-*quantile regression
-qreg ltime female age wage
+	*generating interaction term of gender and age
+	gen fem_age=female*age
 
-*quantile regression with graphed coefficients, confidence interval and OLS coefficients
-grqreg ltime female age wage, ci ols
+	*quatile regression with interaction terms
+	qreg ltime female age fem_age wage 
 
-*generating interaction term of gender and age
-gen fem_age=female*age
+	grqreg ltime female age fem_age wage, ci ols
 
-*quatile regression with interaction terms
-qreg ltime female age fem_age wage 
+	sqreg ltime female age fem_age wage, q(0.1, 0.5 0.8)
 
-grqreg ltime female age fem_age wage, ci ols
+	*Testing if the effect of age is zero for women at different quantiles
+	test[q10]age+[q10]fem_age=0
+	test[q50]age+[q50]fem_age=0
+	test[q80]age+[q80]fem_age=0
 
-sqreg ltime female age fem_age wage, q(0.1, 0.5 0.8)
+	*generate numerical range "a_grid" between lowest and highest ages in the dataset
+	range a_grid 26 49 24
+	label variable a_grid `"age"'
+	
+	*generating estimated conditional quantiles for males at different ages
+	gen q10ageunemp=[q10]_cons+[q10]age*a_grid
+	gen q50ageunemp=[q50]_cons+[q50]age*a_grid
+	gen q80ageunemp=[q80]_cons+[q80]age*a_grid
+	
+	*generating estimated conditional quantiles for females at different ages
+	gen q10fageunemp=[q10]_cons+[q10]female+[q10]age*a_grid+[q10]fem_age*a_grid
+	gen q50fageunemp=[q50]_cons+[q50]female+[q50]age*a_grid+[q50]fem_age*a_grid
+	gen q80fageunemp=[q80]_cons+[q80]female+[q80]age*a_grid+[q80]fem_age*a_grid
+	
+	*plotting estimated conditional quantiles for comparing unemployment trends of males and females at different ages
 
-*Testing if the effect of age is zero for women at different quantiles
-test[q10]age+[q10]fem_age=0
-test[q50]age+[q50]fem_age=0
-test[q80]age+[q80]fem_age=0
-
-*generate numerical range "a_grid" between lowest and highest ages in the dataset
-range a_grid 26 49 24
-label variable a_grid `"age"'
-
-*generating estimated conditional quantiles for males at different ages
-gen q10ageunemp=[q10]_cons+[q10]age*a_grid
-gen q50ageunemp=[q50]_cons+[q50]age*a_grid
-gen q80ageunemp=[q80]_cons+[q80]age*a_grid
-
-*generating estimated conditional quantiles for females at different ages
-gen q10fageunemp=[q10]_cons+[q10]female+[q10]age*a_grid+[q10]fem_age*a_grid
-gen q50fageunemp=[q50]_cons+[q50]female+[q50]age*a_grid+[q50]fem_age*a_grid
-gen q80fageunemp=[q80]_cons+[q80]female+[q80]age*a_grid+[q80]fem_age*a_grid
-
-*plotting estimated conditional quantiles for comparing unemployment trends of males and females at different ages
-
-twoway (line q10fageunemp a_grid, sort  lcolor(black) lpattern(dash))(line q50fageunemp a_grid, sort  lcolor(green) lpattern(dash))(line q80fageunemp a_grid, sort  lcolor(red) lpattern(dash))(line q10ageunemp a_grid, sort  lcolor(black))(line q50ageunemp a_grid, sort  lcolor(green) )(line q80ageunemp a_grid, sort  lcolor(red)), t1(Age-log(time) profile)
+	twoway (line q10fageunemp a_grid, sort  lcolor(black) lpattern(dash))(line q50fageunemp a_grid, sort  lcolor(green) lpattern(dash))(line q80fageunemp a_grid, sort  lcolor(red) lpattern(dash))(line q10ageunemp a_grid, sort  lcolor(black))(line q50ageunemp a_grid, sort  lcolor(green) )(line q80ageunemp a_grid, sort  lcolor(red)), t1(Age-log(time) profile)
 
 clear all
 log close
