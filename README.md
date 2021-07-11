@@ -1,6 +1,6 @@
 # Stata_Code
 
-Welcome to my Stata code repository! For now, I have stored the commands that I wrote for Stata during my practical sessions while at University of York. Below, you'll find a brief overview of every .do file along with some summary statistics for the datasets that I have used in them, in the same order that they are availabale in the repository. You can find all the datasets that I have used in this repository [here](https://github.com/DebarunG/Datasets).
+Welcome to my Stata code repository! For now, I have stored the commands that I wrote for Stata during my practical sessions while at University of York. Below, you'll find a brief overview of every .do file along with some summary statistics for the datasets that I have used in them, in the same order that they are available in the repository. You can find all the datasets that I have used in this repository [here](https://github.com/DebarunG/Datasets).
 
 ## Discrete Choice Models
 I used the [Grogger](https://github.com/DebarunG/Datasets/blob/a453afbcb3bfd54e55a98b8d6fc286300f0d8d38/GROGGER.csv) dataset to analyze the effects of prior behaviour and other characteristics (such as race, prior convictions and birth year) of a sample of people, on the probability of them being arrested in 1986. Summary statistics of the key variables used in the regressions are given below. 
