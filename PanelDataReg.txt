@@ -94,4 +94,4 @@ import delimited "https://raw.githubusercontent.com/DebarunG/Stata_data/main/air
 	*test for joint significance
 	test ldist_lfare ldistsq_lfare
 	
-	log close
+log close
