@@ -1,6 +1,6 @@
 # Stata_Code
 
-Welcome to my Stata code repository! For now, I have stored the commands that I wrote for Stata during my practical sessions while at University of York. Below, you'll find a brief overview of every .do file (converted to .txt for GitHub) along with some summary statistics for the datasets that I have used in them, in the same order that they are available in the repository. You can find all the datasets that I have used in this repository [here](https://github.com/DebarunG/Datasets).
+Welcome to my Stata code repository! I have stored the commands that I wrote for Stata during my practical sessions while at University of York. Below, you'll find a brief overview of every .do file (converted to .txt for GitHub) along with some summary statistics for the datasets that I have used in them, in the same order that they are available in the repository. You can find all the datasets that I have used in this repository [here](https://github.com/DebarunG/Datasets).
 
 ## Discrete Choice Models
 I used the [Grogger](https://github.com/DebarunG/Datasets/blob/a453afbcb3bfd54e55a98b8d6fc286300f0d8d38/GROGGER.csv) dataset to analyze the effects of prior behaviour and other characteristics (such as race, prior convictions and birth year) of a sample of people, on the probability of them being arrested in 1986. Summary statistics of the key variables used in the regressions are given below. 
@@ -207,7 +207,7 @@ Variable       n     Mean     S.D.      Min      .25      Mdn      .75      Max
 
 The dependent variable of interest was **sleep**, which was a continuous variable that measured the number of minutes of sleep a subject had per night per week. The square of variable **age** was also used in the rgeressions to account for a nonlinear relationship between age and minutes spent sleeping. A regression of gender on the squared residuals of the main regression was perofrmed to check if there was any underlying variations which could be explained by additional variables. Heteroskedasticity-robust standard errors were used in some cases.
 
-The main intentions behind using the **hprice1** dataset was to practice manually running the White test for heteroskedasticity. Few of the orginal variables were used, but more variables were generated for the purpose of this test. Summary stats of the original variables used are given below.
+The main intentions behind using the **hprice1** dataset was to practice manually running the White test for heteroskedasticity. Few of the original variables were used, but more variables were generated for the purpose of this test. Summary stats of the original variables used are given below.
 
 ```
                                         -------------- Quantiles --------------
@@ -227,5 +227,99 @@ llotsize      88      8.9      0.5      6.9      8.6      8.8      9.1     11.4
 -------------------------------------------------------------------------------
 ```
 
+## Panel Data Regressions
+Here, I used two datasets, namely:
+* [JTRAIN1](https://github.com/DebarunG/Datasets/blob/main/JTRAIN1.csv) and,
+* [airfare](https://github.com/DebarunG/Datasets/blob/main/airfare.csv).
 
+The **JTRAIN1** dataset was used to analyze the effects of job training grants ( as well as other factors such as the year of grant, presence of unions, and the effects of past grants) on firm scrap rates. Summary statistics for the variables used from the dataset are given below.
 
+```
+                                        -------------- Quantiles --------------
+Variable       n     Mean     S.D.      Min      .25      Mdn      .75      Max
+-------------------------------------------------------------------------------
+  lscrap  log(scrap)
+  lscrap     162      0.4      1.5     -4.6     -0.5      0.3      1.4      3.4
+
+     d88  = 1 if year = 1988
+     d88     471      0.3      0.5      0.0      0.0      0.0      1.0      1.0
+
+     d89  = 1 if year = 1989
+     d89     471      0.3      0.5      0.0      0.0      0.0      1.0      1.0
+
+   union  =1 if unionized
+   union     471      0.2      0.4      0.0      0.0      0.0      0.0      1.0
+
+   grant  = 1 if received grant
+   grant     471      0.1      0.3      0.0      0.0      0.0      0.0      1.0
+-------------------------------------------------------------------------------
+```
+
+The dependent variable of interest for all regressions was **lscrap**, which was the log of the firm's scrap rate per 100 items produced. A firm with a higher scrap rate produced more faulty products in the production line than a firm with a lower scrap rate. A preliminary OLS regression was conducted with robust clustered standard errors, clustered around the firm's code, to account for variations in a firm's performance across time. Several panel data regression models are used, namely:
+* first differencing,
+* fixed-effects (FE) regression,
+* dummy variable (DV) regression and,
+* random effects (RE) regressio,
+
+A Breusch-Pagan test was implemented to compare the estimates obtained from pooled OLS and FE/RE regressions, then a Hausman test was was implemented to compare the estimates obtained from FE and RE regressions.
+
+The **airfare** dataset was used to see the effects of fare and distance on passenger count in an airline. Summary statistics for variables used from **airfare** are given below.
+
+```
+                                        -------------- Quantiles --------------
+Variable       n     Mean     S.D.      Min      .25      Mdn      .75      Max
+-------------------------------------------------------------------------------
+   lfare  log(fare)
+   lfare    4596     5.10     0.44     3.61     4.81     5.12     5.42     6.26
+
+ lpassen  log(passen)
+ lpassen    4596     6.02     0.88     0.69     5.37     5.88     6.58     9.05
+
+  concen  = bmktshr
+  concen    4596     0.61     0.20     0.16     0.47     0.60     0.75     1.00
+
+   ldist  log(distance)
+   ldist    4596     6.70     0.66     4.55     6.22     6.76     7.17     7.91
+
+ ldistsq  ldist^2
+ ldistsq    4596    45.28     8.73    20.74    38.75    45.67    51.45    62.57
+
+     y98  =1 if year == 1998
+     y98    4596     0.25     0.43     0.00     0.00     0.00     0.50     1.00
+
+     y99  =1 if year == 1999
+     y99    4596     0.25     0.43     0.00     0.00     0.00     0.50     1.00
+
+     y00  =1 if year == 2000
+     y00    4596     0.25     0.43     0.00     0.00     0.00     0.50     1.00
+-------------------------------------------------------------------------------
+```
+
+Dependent variables of interest here were:
+* **lfare**: log of average one-way fare for a particular route and,
+* **lpassen**: log of average daily passengers for a route.
+
+The exercises in this case were similar to the previous one with standard errors clustered around the flight routes, but with the addition of interaction terms in some of the panel data regressions.
+
+## Quantile Regressions
+The dataset used for quantile regressions was [unemp](https://github.com/DebarunG/Datasets/blob/main/unemp.csv), to analyze the effects of gender, age and other characteristics on the amount of time a person spent being unemployed. Summary statistics of the variables used for the regressions from this dataset are given below.
+
+```
+                                        -------------- Quantiles --------------
+Variable       n     Mean     S.D.      Min      .25      Mdn      .75      Max
+-------------------------------------------------------------------------------
+   ltime  log(time)
+   ltime   21685     5.39     1.32     0.00     4.39     5.50     6.48     7.69
+
+  female  Sex (1=female)
+  female   21685     0.37     0.48     0.00     0.00     0.00     1.00     1.00
+
+     age  Age in years
+     age   21685    35.50     6.74    26.00    30.00    34.00    41.00    49.00
+
+    wage  Last daily wage while employed (in euros)
+    wage   21685    61.25    34.56     0.00    43.40    61.70    79.10   204.10
+-------------------------------------------------------------------------------
+```
+
+The dependent variable of interest was **ltime**, which was a continuous variable taken as the log of the number of days spent unemployed by a person. Several interaction terms were generated using the above original variables to plot estimated conditional quantiles of unemployment periods for men and women at different ages. Theprimary intention of this exercise was to illustrate the coefficients which varied for men and women at different quantiles. For example, at the 10th percentile, the functions were parallel for males and females with females having a larger intercept but for high a quantile like the 80th percentile, it was seen that young females have longer unemployment periods than young males but older females have shorter unemployment periods.
