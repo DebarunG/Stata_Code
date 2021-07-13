@@ -35,7 +35,6 @@ import delimited "https://raw.githubusercontent.com/DebarunG/Stata_data/main/GRO
 	*probit model
 	probit arr86 pcnv avgsen tottime ptime86 inc86 black hispan born60
 	mfx
-	local regressors avgsen tottime ptime86 inc86
 	
 	*marginal effects on arrest probability when prior convictions go from 0.25 to 0.75
 	margins, at(black=1 hispan=0 born60=1 pcnv=0.25) atmean
